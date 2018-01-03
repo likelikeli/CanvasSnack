@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>贪吃蛇</title>
+		<style type="text/css">
+			canvas {
+				border: 1px solid;
+			}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="canvas" width="600" height="600"></canvas>
+	</body>
+	<script type="text/javascript">
+		var canvas = document.getElementById("canvas");
+		var context = canvas.getContext("2d");
+		//规则 
+		// 蛇头不能碰壁
+		// 蛇头不能碰自身
+		//吃到食物身体边长
+		//食物随机出现（不能随机到蛇身体上）
+		//上下左右 不能反向运动
+		class Rect {
+			constructor(x, y, color) {
+				this.x = x;
+				this.y = y;
+				this.w = 20;
+				this.h = 20;
+				this.color = color;
+			}
+			draw() {
+				context.beginPath();
+				context.fillStyle = this.color;
+				context.fillRect(this.x, this.y, this.w, this.h);
+				context.strokeRect(this.x, this.y, this.w, this.h);
+
+			}
+		}
+		//定义一个蛇
+		class Snake {
+			constructor() {
+				this.bodyArr = [];
+				for(var i = 0; i < 5; i++) {
+
+					var newRect = new Rect(i * 20, 0, 'gray');
+					this.bodyArr.splice(0, 0, newRect)
+				}
+				this.dis = "right";
+				//是否存活
+				this.islive = true;
+
+			}
+			draw() {
+
+				for(var i = 0; i < this.bodyArr.length; i++) {
+					if(i == 0) {
+						this.bodyArr[i].color = "red"
+					}
+					this.bodyArr[i].draw();
+				}
+			}
+			move() {
+				//实例化小方块，加在蛇头后面
+				var addRect = new Rect(this.bodyArr[0].x, this.bodyArr[0].y, "gray");
+				//移动蛇头
+				//this.bodyArr[0].x+=20;
+				switch(this.dis) {
+					case "right":
+						this.bodyArr[0].x += 20;
+						break;
+					case "down":
+						this.bodyArr[0].y += 20;
+						break;
+					case "left":
+						this.bodyArr[0].x -= 20;
+						break;
+					case "top":
+						this.bodyArr[0].y -= 20;
+						break;
+				}
+				//碰壁检测
+				if(this.bodyArr[0].x < 0 || this.bodyArr[0].x > canvas.width - 20 || this.bodyArr[0].y < 0 || this.bodyArr[0].y > canvas.height - 20) {
+					console.log("你挂了")
+					this.islive = false;
+				}
+				//蛇头和自身检测碰撞
+				for(var i = 3; i < this.bodyArr.length; i++) {
+					if(this.bodyArr[i].x == this.bodyArr[0].x && this.bodyArr[i].y == this.bodyArr[0].y) {
+						this.islive = false;
+					}
+				}
+				//蛇头是否吃到食物
+				if(this.bodyArr[0].x==food.x && this.bodyArr[0].y==food.y){
+					food=createFood();
+				}else{
+					//删除最后一个小方块
+					this.bodyArr.pop();
+				}
+				//把方块加到蛇头后面
+				this.bodyArr.splice(1, 0, addRect);
+			
+
+			}
+		}
+		var snake = new Snake();
+		snake.draw()
+		var food=createFood()
+		
+		var speed = 0;
+		var ress;
+
+		function act() {
+			
+			speed++
+			if(speed % 20 == 0) {
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				snake.draw();
+				snake.move();
+				food.draw();
+			}
+			if(snake.islive) {
+				ress = window.requestAnimationFrame(act)
+			}
+
+		}
+		document.onkeydown = function(e) {
+
+			var ev = e || window.event;
+
+			switch(ev.keyCode) {
+				case 37:
+					if(snake.dis != "right") {
+						snake.dis = "left";
+					}
+					break;
+				case 38:
+					if(snake.dis != "down") {
+						snake.dis = "top";
+					}
+					break;
+				case 39:
+					if(snake.dis != "left") {
+						snake.dis = "right";
+					}
+					break;
+				case 40:
+					if(snake.dis != "top") {
+						snake.dis = "down";
+					}
+
+					break;
+			}
+		}
+		act()
+
+		function randNum(min, max) {
+			return parseInt(Math.random() * (max - min) + min);
+		}
+
+		
+		//随机食物
+		function createFood() {
+			
+			//食物随机符合条件不while，不符合条件能循环
+			var judge=true;
+			while(judge){
+				var x=randNum(0,30)*20;
+				var y=randNum(0,30)*20;
+				food=new Rect(x,y,"greenyellow");
+				//满足条件
+				var sure=true;
+				for(var i=0;i<snake.bodyArr.length;i++){
+					if(snake.bodyArr[0].x==x && snake.bodyArr[0].y==y){
+						//不满足条件
+						sure=false
+					}
+					
+				}
+				if(sure){
+					//满足条件
+						judge=false
+					}
+			}
+			
+			return food;
+
+		}
+		
+	</script>
+
+</html>
